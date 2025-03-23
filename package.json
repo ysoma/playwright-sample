@@ -1,0 +1,16 @@
+{
+  "name": "playwright-sample",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "npx playwright test",
+    "allure:generate": "allure generate ./allure-results --clean",
+    "allure:open": "allure open ./allure-report",
+    "allure:clean": "rm -rf allure-results allure-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.51.1",
+    "allure-commandline": "^2.33.0",
+    "allure-playwright": "^3.2.0",
+    "typescript": "^5.3.3"
+  }
+}

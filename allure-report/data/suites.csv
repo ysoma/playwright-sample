@@ -1,0 +1,7 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"タイトルが表示されていること","1423","トップページが正しく表示される","","Sun Mar 23 16:19:57 JST 2025","passed","Sun Mar 23 16:19:58 JST 2025","","index.spec.ts","",""
+"登録済みユーザーが正しいメールアドレスとパスワードでログインできる","1611","正しい資格情報でログインできる","","Sun Mar 23 16:19:57 JST 2025","passed","Sun Mar 23 16:19:59 JST 2025","","login.spec.ts","",""
+"","1655","ログイン後にログアウトするとトップページに戻る","","Sun Mar 23 16:20:02 JST 2025","passed","Sun Mar 23 16:20:03 JST 2025","","login.spec.ts","",""
+"ナビゲーションから各ページに遷移できること","1829","ナビゲーションメニューで各ページに遷移できる","","Sun Mar 23 16:19:58 JST 2025","passed","Sun Mar 23 16:20:00 JST 2025","","index.spec.ts","",""
+"誤ったパスワードではログインできず、エラーメッセージが表示される","1458","間違ったパスワードでログインできない","","Sun Mar 23 16:19:59 JST 2025","passed","Sun Mar 23 16:20:00 JST 2025","","login.spec.ts","",""
+"認証されていない状態で /mypage にアクセスすると /index にリダイレクトされる","1357","未ログイン状態でマイページにアクセスするとリダイレクトされる","","Sun Mar 23 16:20:00 JST 2025","passed","Sun Mar 23 16:20:02 JST 2025","","login.spec.ts","",""

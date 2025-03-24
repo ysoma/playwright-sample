@@ -1,5 +1,6 @@
 /**
- * BasePage class
+ * @name BasePage
+ * @description Base page object
  */
 import { Page } from '@playwright/test';
 

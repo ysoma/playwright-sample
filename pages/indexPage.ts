@@ -1,5 +1,6 @@
 /**
- * IndexPage class
+ * @name indexPage.ts
+ * @description Index page object
  */
 import { BasePage } from './basePage';
 

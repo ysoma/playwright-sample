@@ -1,3 +1,8 @@
+/**
+ * @name loginPage.ts
+ * @description Login page object   
+ */
+
 import { BasePage } from './basePage';
 
 export class LoginPage extends BasePage {

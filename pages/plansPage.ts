@@ -12,7 +12,6 @@ export class PlansPage extends BasePage {
     }
 
     async selectPlanByName(planName: string): Promise<Page> {
-        console.log(`プラン「${planName}」を選択しています...`);
 
         try {
             // まずプランが存在するか確認

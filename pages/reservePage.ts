@@ -51,4 +51,23 @@ export class ReservePage extends BasePage {
     async proceedToConfirm() {
         await this.page.locator('[data-test="submit-button"]').click();
     }
+
+    async fillReservationForm(data: {
+        checkInDate: string;
+        stayDays: string;
+        guests: string;
+        additionalPlans: string[];
+        guestName: string;
+        email: string;
+        remarks: string;
+    }) {
+        await this.selectDate(data.checkInDate);
+        await this.selectStayDays(data.stayDays);
+        await this.selectGuests(data.guests);
+        await this.chooseAdditionalPlans(data.additionalPlans);
+        await this.fillName(data.guestName)
+        await this.selectContactMethod(data.email ? 'email' : 'no');
+        await this.fillEmail(data.email);
+        await this.fillRemarks(data.remarks);
+    }
 }

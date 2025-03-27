@@ -1,4 +1,4 @@
-# .github/workflows/playwright.yml
+#.github/workflows/playwright.yml
 name: Playwright Tests
 
 on:

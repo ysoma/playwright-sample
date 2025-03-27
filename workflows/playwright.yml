@@ -1,0 +1,50 @@
+# .github/workflows/playwright.yml
+name: Playwright Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    name: Run Playwright Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+        
+      - name: Run Playwright tests
+        run: npx playwright test
+        
+      - name: Generate Allure Report
+        if: always()
+        run: npm run allure:generate
+        
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: allure-results
+          path: allure-results/
+          retention-days: 30
+          
+      - name: Deploy report to GitHub Pages
+        if: always() && github.ref == 'refs/heads/main'  # mainブランチのみに適用
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./allure-report
+          publish_branch: gh-pages

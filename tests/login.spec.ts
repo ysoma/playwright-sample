@@ -46,11 +46,8 @@ test('正しい認証情報でログインできる', async ({ page }) => {
         loginCredentials.validUser.password
     );
 
-    // THEN: マイページに遷移する
-    await expect(page).toHaveURL(/mypage/);
-
-    // AND: マイページのヘッダーが表示される
-    await expect(page.getByRole('heading', { name: /マイページ/ })).toBeVisible();
+    // THEN: マイページに正常に遷移している
+    await loginPage.assertLoginSuccess();
 });
 
 test('間違ったパスワードでログインできない', async ({ page }) => {
@@ -69,12 +66,12 @@ test('間違ったパスワードでログインできない', async ({ page }) 
         loginCredentials.invalidUser.password
     );
 
-    // THEN: ログインページに留まる
-    await expect(page).toHaveURL(/\/login/);
-
-    // AND: 適切なエラーメッセージが表示される
-    await expect(page.locator('#email-message')).toContainText('メールアドレスまたはパスワードが違います');
-    await expect(page.locator('#password-message')).toContainText('メールアドレスまたはパスワードが違います');
+    // THEN: ログインに失敗し、適切なエラーメッセージが表示される
+    await loginPage.assertLoginFailure();
+    await loginPage.assertErrorMessages(
+        'メールアドレスまたはパスワードが違います',
+        'メールアドレスまたはパスワードが違います'
+    );
 });
 
 test('未ログイン状態でマイページにアクセスするとリダイレクトされる', async ({ page }) => {
@@ -109,15 +106,16 @@ test('ログイン後にログアウトするとトップページに戻る', as
     );
 
     // THEN: マイページに遷移する
-    await expect(page).toHaveURL(/mypage/);
+    await loginPage.assertLoginSuccess();
 
     // WHEN: ログアウトする
     await loginPage.logout();
 
     // THEN: トップページにリダイレクトされる
-    await expect(page).toHaveURL(/\/index/);
+    await loginPage.assertCurrentUrl(/\/index/);
 
     // AND: ログインボタンが表示される（ログアウト状態の確認）
+    await page.waitForLoadState('networkidle'); // ページが完全に読み込まれるのを待つ
     await expect(page.getByRole('button', { name: 'ログイン' })).toBeVisible();
 });
 

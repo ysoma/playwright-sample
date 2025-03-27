@@ -50,7 +50,7 @@ test('宿泊予約フローの各画面が視覚的に正しく表示される',
   await plansPage.goto();
 
   // WHEN: ページが完全に読み込まれる
-  await page.waitForLoadState('networkidle');
+  await plansPage.waitForPageLoad();
 
   // THEN: ビジュアルが期待通りである
   await captureSnapshot(page, 'plans.png');
@@ -62,7 +62,7 @@ test('宿泊予約フローの各画面が視覚的に正しく表示される',
 
   // WHEN: 予約フォームに情報を入力する
   await reserveForm.fillReservationForm(reservationTestData);
-  await reservationPage.waitForLoadState('networkidle');
+  await reserveForm.waitForPageLoad();
 
   // THEN: ビジュアルが期待通りである
   await captureSnapshot(reservationPage, 'reserve.png');
@@ -70,23 +70,23 @@ test('宿泊予約フローの各画面が視覚的に正しく表示される',
   // STEP 3: 確認ページのビジュアル検証
   // WHEN: 確認ページに進む
   await reserveForm.proceedToConfirm();
-  await reservationPage.waitForLoadState('networkidle');
 
   // THEN: ビジュアルが期待通りである
+  const confirmPage = new ConfirmPage(reservationPage);
+  await confirmPage.waitForPageLoad();
   await captureSnapshot(reservationPage, 'confirm.png');
 
   // STEP 4: 予約完了モーダルのビジュアル検証
   // WHEN: 予約を確定する
-  const confirmPage = new ConfirmPage(reservationPage);
   await confirmPage.confirm();
 
   // THEN: 予約完了モーダルが表示され、ビジュアルが期待通りである
   await confirmPage.expectModalVisible();
-  await reservationPage.waitForLoadState('networkidle');
   await captureSnapshot(reservationPage, 'complete-modal.png');
 });
 
 // 将来的に追加すべきテストケース：
 // - 異なるビューポートサイズ（モバイル、タブレット）での表示検証
+// - ダークモードでの表示検証（サイトがダークモードに対応している場合）
 // - アニメーション要素の視覚的検証
 // - フォーム入力エラー時の表示検証

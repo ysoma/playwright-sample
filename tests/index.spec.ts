@@ -23,6 +23,7 @@ test('トップページが正しく表示される', async ({ page }) => {
     // GIVEN: ユーザーがトップページにアクセスする
     const indexPage = new IndexPage(page);
     await indexPage.goto();
+    await indexPage.waitForPageLoad();
 
     // THEN: ページタイトルが正しく表示される
     await expect(page).toHaveTitle(/HOTEL PLANISPHERE/);
@@ -37,30 +38,33 @@ test('ナビゲーションメニューで各ページに遷移できる', async
     // GIVEN: ユーザーがトップページにアクセスする
     const indexPage = new IndexPage(page);
     await indexPage.goto();
+    await indexPage.waitForPageLoad();
 
     // WHEN: 宿泊予約ページへのリンクをクリックする
     await indexPage.navigateToPlans();
 
     // THEN: 宿泊予約ページに遷移する
-    await expect(page).toHaveURL(/\/plans/);
+    await indexPage.assertCurrentUrl(/\/plans/);
 
     // WHEN: トップページに戻る
     await indexPage.navigateToHome();
+    await indexPage.waitForPageLoad();
 
     // WHEN: 会員登録ページへのリンクをクリックする
     await indexPage.navigateToSignup();
 
     // THEN: 会員登録ページに遷移する
-    await expect(page).toHaveURL(/\/signup/);
+    await indexPage.assertCurrentUrl(/\/signup/);
 
     // WHEN: トップページに戻る
     await indexPage.navigateToHome();
+    await indexPage.waitForPageLoad();
 
     // WHEN: ログインページへのリンクをクリックする
     await indexPage.navigateToLogin();
 
     // THEN: ログインページに遷移する
-    await expect(page).toHaveURL(/\/login/);
+    await indexPage.assertCurrentUrl(/\/login/);
 });
 
 // 将来的に追加すべきテストケース：

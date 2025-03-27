@@ -19,7 +19,7 @@ import { allure } from 'allure-playwright';
 // ----------------------------------------------------------------------------
 const reservationTestData = {
     planName: 'お得な特典付きプラン',
-    checkInDate: '2025/5/31',
+    checkInDate: '2025/04/01',
     stayDays: '2',
     guests: '2',
     additionalPlans: ['朝食バイキング', 'お得な観光プラン'],
@@ -53,26 +53,20 @@ test('宿泊予約の一連フローが正常に完了すること', async ({ pa
 
     // THEN: 確認画面に遷移し、入力した予約内容が正しく表示されている
     const confirmPage = new ConfirmPage(reservationPage);
-    await expect(reservationPage).toHaveURL(/.*\/confirm\.html/);
+    await confirmPage.assertCurrentUrl(/.*\/confirm\.html/);
 
-    // 予約内容の検証
-    const displayedPlanName = await confirmPage.getPlanNameText();
-    const displayedGuestName = await confirmPage.getGuestNameText();
-    const displayedContact = await confirmPage.getContactText();
-
-    expect(displayedPlanName).toContain(reservationTestData.planName);
-    expect(displayedGuestName).toContain(reservationTestData.guestName);
-    expect(displayedContact).toContain(reservationTestData.email);
+    // 新しく追加したアサーションメソッドを使用して予約詳細を検証
+    await confirmPage.assertReservationDetails(
+        reservationTestData.planName,
+        reservationTestData.guestName,
+        reservationTestData.email
+    );
 
     // WHEN: 予約を確定する
     await confirmPage.confirm();
 
-    // THEN: 予約完了のモーダルが表示される
-    await confirmPage.expectModalVisible();
-
-    // AND: モーダルに適切な予約完了メッセージが表示されている
-    const completionMessage = await confirmPage.getModalText();
-    expect(completionMessage).toContain('ご来館、心よりお待ちしております');
+    // THEN: 予約完了のモーダルが表示され、適切なメッセージが含まれている
+    await confirmPage.assertCompletionModal('ご来館、心よりお待ちしております');
 });
 
 // 将来的に追加すべきテストケース：

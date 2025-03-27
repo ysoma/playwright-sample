@@ -1,5 +1,8 @@
 # 🏨 Hotel Planisphere E2E自動テストフレームワーク
 
+[![Playwright Tests](https://github.com/ysoma/playwright-sample/actions/workflows/playwright.yml/badge.svg)](https://github.com/ysoma/playwright-sample/actions/workflows/playwright.yml)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Deployed-success?logo=github)](https://ysoma.github.io/playwright-sample/)
+
 このプロジェクトは [Hotel Planisphere](https://hotel.testplanisphere.dev/) を対象とした自動E2Eテストのデモンストレーションです。
 Playwright + TypeScript + Allure Report を使用し、効率的かつ堅牢なテスト設計・構成を実装しています。
 
@@ -11,16 +14,24 @@ Playwright + TypeScript + Allure Report を使用し、効率的かつ堅牢な�
 
 - **Page Object Model (POM)設計** - 保守性と再利用性の高いテストコード
 - **ビジュアルリグレッションテスト** - UIの変更を自動検出
-- **データ駆動テスト** - 様々なテストデータでの検証
-- **Allureレポート** - 直感的で視覚的なテスト結果
-- **CI/CD互換** - 自動化パイプラインへの統合が容易
+- **クロスブラウザテスト** - Chrome, Firefox, Safari対応
+- **CI/CD統合** - GitHub Actionsによる自動テスト実行
+- **Allureレポート** - 詳細なテスト結果を視覚的に表示
+- **GitHub Pages連携** - テスト結果レポートの自動公開
+
+## 🔗 リンク
+
+- [テスト対象サイト](https://hotel.testplanisphere.dev/)
+- [テスト結果レポート](https://ysoma.github.io/playwright-sample/)
+- [CI/CDパイプライン](https://github.com/ysoma/playwright-sample/actions)
 
 ## 🛠️ 技術スタック
 
 - [Playwright](https://playwright.dev/) - モダンなE2Eテストフレームワーク
 - [TypeScript](https://www.typescriptlang.org/) - 型安全なJavaScript
 - [Allure Report](https://docs.qameta.io/allure/) - 豊富な視覚化機能を持つレポートツール
-- [Page Object Model](https://playwright.dev/docs/pom) - テスト設計パターン
+- [GitHub Actions](https://github.com/features/actions) - CI/CDパイプライン
+- [GitHub Pages](https://pages.github.com/) - 静的サイトホスティング
 
 ## 🚀 セットアップ
 
@@ -33,8 +44,8 @@ Playwright + TypeScript + Allure Report を使用し、効率的かつ堅牢な�
 
 ```bash
 # リポジトリのクローン
-git clone https://github.com/yourusername/hotel-planisphere-test.git
-cd hotel-planisphere-test
+git clone https://github.com/ysoma/playwright-sample.git
+cd playwright-sample
 
 # 依存パッケージのインストール
 npm install
@@ -58,6 +69,12 @@ npx playwright test tests/login.spec.ts
 
 ```bash
 npx playwright test --ui
+```
+
+### 特定のブラウザでのみテスト実行
+
+```bash
+npx playwright test --project=chromium
 ```
 
 ## 📊 レポート生成
@@ -99,6 +116,22 @@ UIが意図的に変更された場合、期待画像を更新します：
 npx playwright test tests/visual.spec.ts --update-snapshots
 ```
 
+## 🔄 継続的インテグレーション
+
+このプロジェクトはGitHub Actionsと統合されており、以下の自動化が実現されています：
+
+1. **自動テスト実行**
+   - プッシュやプルリクエスト時に全テストが自動実行
+   - 3種類のブラウザでクロスブラウザテスト
+
+2. **テストレポート生成**
+   - Allureレポートの自動生成
+   - テスト成果物（スクリーンショットなど）の保存
+
+3. **レポート公開**
+   - GitHub Pagesへの自動デプロイ
+   - 最新のテスト結果へのアクセス提供
+
 ## 📁 プロジェクト構成
 
 ```
@@ -113,6 +146,7 @@ npx playwright test tests/visual.spec.ts --update-snapshots
 │   ├── login.spec.ts   # ログインテスト
 │   └── ...             # その他テスト
 ├── helpers/            # ヘルパー関数
+├── .github/workflows/  # GitHub Actions設定
 ├── allure-results/     # テスト結果（生成される）
 ├── allure-report/      # HTMLレポート（生成される）
 ├── playwright.config.ts # Playwright設定
@@ -127,46 +161,7 @@ npx playwright test tests/visual.spec.ts --update-snapshots
 1. **ページオブジェクトモデル (POM)** - ページごとの操作をカプセル化
 2. **テストデータの分離** - テストとデータを分離し保守性向上
 3. **Allureアノテーション** - テストメタデータの付与でレポート強化
-4. **スクリーンショットの活用** - 失敗時の状態を視覚的に把握
-
-## 🔄 継続的インテグレーション
-
-このテストスイートはCI/CDパイプラインに簡単に統合できます。GitHub Actionsの設定例：
-
-```yaml
-name: E2E Tests
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - name: Install dependencies
-        run: npm ci
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-      - name: Run tests
-        run: npm test
-      - name: Generate Allure report
-        if: always()
-        run: npm run allure:generate
-      - name: Upload Allure report
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: allure-report
-          path: allure-report/
-```
-
-## 📈 将来の拡張計画
-
-- [ ] テストカバレッジの拡大（管理画面、エラーケース等）
-- [ ] APIテストの追加
-- [ ] 複数ブラウザでの並列テスト実行
-- [ ] カスタムレポートダッシュボードの実装
+4. **エラーハンドリング** - 安定したテスト実行のための対策実装
 
 ## 🤝 コントリビューション
 

@@ -6,7 +6,7 @@
  * 2. ナビゲーションメニューから各ページへの遷移が正しく機能すること
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './hooks';
 import { IndexPage } from '../pages/indexPage';
 import { allure } from 'allure-playwright';
 
@@ -15,56 +15,90 @@ import { allure } from 'allure-playwright';
 // ----------------------------------------------------------------------------
 
 test('トップページが正しく表示される', async ({ page }) => {
-    // テストのメタデータを設定
-    allure.label('feature', 'トップページ');
-    allure.description('タイトルが表示されていること');
+    // Allureレポート用メタデータの詳細設定
+    allure.epic('基本UI');
+    allure.feature('トップページ');
+    allure.story('初期表示');
+    allure.description('トップページが正しく読み込まれ、タイトルが表示されていることを検証します');
     allure.severity('normal');
+    allure.tag('smoke');
+    allure.tag('ui');
+    allure.tag('basic');
+    allure.owner('ysoma');
 
     // GIVEN: ユーザーがトップページにアクセスする
     const indexPage = new IndexPage(page);
-    await indexPage.goto();
-    await indexPage.waitForPageLoad();
+    await allure.step('トップページにアクセス', async () => {
+        await indexPage.goto();
+        await indexPage.waitForPageLoad();
+    });
 
     // THEN: ページタイトルが正しく表示される
-    await expect(page).toHaveTitle(/HOTEL PLANISPHERE/);
+    await allure.step('ページタイトルを検証', async () => {
+        await expect(page).toHaveTitle(/HOTEL PLANISPHERE/);
+    });
 });
 
 test('ナビゲーションメニューで各ページに遷移できる', async ({ page }) => {
-    // テストのメタデータを設定
-    allure.label('feature', 'ナビゲーション');
-    allure.description('ナビゲーションから各ページに遷移できること');
+    // Allureレポート用メタデータの詳細設定
+    allure.epic('基本UI');
+    allure.feature('ナビゲーション');
+    allure.story('メニュー操作');
+    allure.description('ナビゲーションメニューから各主要ページへ正しく遷移できることを検証します');
     allure.severity('critical');
+    allure.tag('smoke');
+    allure.tag('navigation');
+    allure.tag('ui');
+    allure.owner('ysoma');
 
     // GIVEN: ユーザーがトップページにアクセスする
     const indexPage = new IndexPage(page);
-    await indexPage.goto();
-    await indexPage.waitForPageLoad();
+    await allure.step('トップページにアクセス', async () => {
+        await indexPage.goto();
+        await indexPage.waitForPageLoad();
+    });
 
     // WHEN: 宿泊予約ページへのリンクをクリックする
-    await indexPage.navigateToPlans();
+    await allure.step('宿泊予約ページへ遷移', async () => {
+        await indexPage.navigateToPlans();
+    });
 
     // THEN: 宿泊予約ページに遷移する
-    await indexPage.assertCurrentUrl(/\/plans/);
+    await allure.step('宿泊予約ページへの遷移を検証', async () => {
+        await indexPage.assertCurrentUrl(/\/plans/);
+    });
 
     // WHEN: トップページに戻る
-    await indexPage.navigateToHome();
-    await indexPage.waitForPageLoad();
+    await allure.step('トップページに戻る', async () => {
+        await indexPage.navigateToHome();
+        await indexPage.waitForPageLoad();
+    });
 
     // WHEN: 会員登録ページへのリンクをクリックする
-    await indexPage.navigateToSignup();
+    await allure.step('会員登録ページへ遷移', async () => {
+        await indexPage.navigateToSignup();
+    });
 
     // THEN: 会員登録ページに遷移する
-    await indexPage.assertCurrentUrl(/\/signup/);
+    await allure.step('会員登録ページへの遷移を検証', async () => {
+        await indexPage.assertCurrentUrl(/\/signup/);
+    });
 
     // WHEN: トップページに戻る
-    await indexPage.navigateToHome();
-    await indexPage.waitForPageLoad();
+    await allure.step('トップページに戻る', async () => {
+        await indexPage.navigateToHome();
+        await indexPage.waitForPageLoad();
+    });
 
     // WHEN: ログインページへのリンクをクリックする
-    await indexPage.navigateToLogin();
+    await allure.step('ログインページへ遷移', async () => {
+        await indexPage.navigateToLogin();
+    });
 
     // THEN: ログインページに遷移する
-    await indexPage.assertCurrentUrl(/\/login/);
+    await allure.step('ログインページへの遷移を検証', async () => {
+        await indexPage.assertCurrentUrl(/\/login/);
+    });
 });
 
 // 将来的に追加すべきテストケース：

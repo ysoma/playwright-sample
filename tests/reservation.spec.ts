@@ -1,8 +1,11 @@
 /**
- * 宿泊予約の一連フローが完了するテスト
- * 1. プラン選択
- * 2. 予約フォーム入力
- * 3. 確認
+ * 宿泊予約フローE2Eテスト
+ * 
+ * このテストでは、以下の一連のユーザーフローを検証します：
+ * 1. プラン選択ページでの宿泊プラン選択
+ * 2. 予約情報入力フォームの入力
+ * 3. 予約内容確認
+ * 4. 予約完了
  */
 
 import { test, expect, Page } from '@playwright/test';
@@ -11,9 +14,12 @@ import { ReservePage } from '../pages/reservePage';
 import { ConfirmPage } from '../pages/confirmPage';
 import { allure } from 'allure-playwright';
 
-const testData = {
+// ----------------------------------------------------------------------------
+// テスト用宿泊予約データ
+// ----------------------------------------------------------------------------
+const reservationTestData = {
     planName: 'お得な特典付きプラン',
-    checkInDate: '2025/04/01',
+    checkInDate: '2025/5/31',
     stayDays: '2',
     guests: '2',
     additionalPlans: ['朝食バイキング', 'お得な観光プラン'],
@@ -22,29 +28,54 @@ const testData = {
     remarks: '静かな部屋を希望します'
 };
 
-test('宿泊予約の一連フローが完了する', async ({ page }) => {
+// ----------------------------------------------------------------------------
+// テストケース
+// ----------------------------------------------------------------------------
+test('宿泊予約の一連フローが正常に完了すること', async ({ page }) => {
+    // テストのメタデータを設定
     allure.label('feature', '宿泊予約');
-    allure.description('プラン選択から予約フォーム入力、確認、モーダル完了までのE2Eテスト');
+    allure.description('プラン選択から予約入力、確認、完了までの一連のE2Eフロー検証');
+    allure.severity('critical');
 
+    // GIVEN: プラン一覧ページにアクセスする
     const plansPage = new PlansPage(page);
     await plansPage.goto();
-    const popup: Page = await plansPage.selectPlanByName(testData.planName); // プラン選択
 
-    const reservePage = new ReservePage(popup);
-    const confirmPage = new ConfirmPage(popup);
+    // WHEN: 特定のプランを選択する
+    const reservationPage: Page = await plansPage.selectPlanByName(reservationTestData.planName);
 
-    await reservePage.fillReservationForm(testData);    // testDataの入力
-    await reservePage.proceedToConfirm();
+    // AND: 予約情報を入力する
+    const reserveForm = new ReservePage(reservationPage);
+    await reserveForm.fillReservationForm(reservationTestData);
 
-    await expect(popup).toHaveURL(/.*\/confirm\.html/); // 確認画面に遷移したことを検証
-    expect(await confirmPage.getPlanNameText()).toContain(testData.planName);
-    expect(await confirmPage.getGuestNameText()).toContain(testData.guestName);
-    expect(await confirmPage.getContactText()).toContain(testData.email);
+    // AND: 予約確認画面へ進む
+    await reserveForm.proceedToConfirm();
 
+    // THEN: 確認画面に遷移し、入力した予約内容が正しく表示されている
+    const confirmPage = new ConfirmPage(reservationPage);
+    await expect(reservationPage).toHaveURL(/.*\/confirm\.html/);
 
-    await confirmPage.confirm(); // 確認画面で「予約する」ボタンをクリック
+    // 予約内容の検証
+    const displayedPlanName = await confirmPage.getPlanNameText();
+    const displayedGuestName = await confirmPage.getGuestNameText();
+    const displayedContact = await confirmPage.getContactText();
+
+    expect(displayedPlanName).toContain(reservationTestData.planName);
+    expect(displayedGuestName).toContain(reservationTestData.guestName);
+    expect(displayedContact).toContain(reservationTestData.email);
+
+    // WHEN: 予約を確定する
+    await confirmPage.confirm();
+
+    // THEN: 予約完了のモーダルが表示される
     await confirmPage.expectModalVisible();
-    const modalText = await confirmPage.getModalText();
-    expect(modalText).toContain('ご来館、心よりお待ちしております');    // モーダルを検証
+
+    // AND: モーダルに適切な予約完了メッセージが表示されている
+    const completionMessage = await confirmPage.getModalText();
+    expect(completionMessage).toContain('ご来館、心よりお待ちしております');
 });
 
+// 将来的に追加すべきテストケース：
+// - 必須項目が未入力の場合のバリデーション確認
+// - 異なるプラン選択での予約フロー
+// - 連絡方法を電話番号に設定した場合の予約フロー

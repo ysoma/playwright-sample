@@ -19,20 +19,66 @@ export class ConfirmPage extends BasePage {
         await this.page.click('.modal button:has-text("閉じる")');
     }
 
-    // 要素のテキストを取得するメソッド
+    // ヘッドレスモードでも安定して要素のテキストを取得するメソッド
     async getPlanNameText() {
-        return await this.page.locator('[id="plan-name"]').textContent();
+        // 要素が表示され、内容が読み込まれるのを明示的に待機
+        await this.page.waitForSelector('[id="plan-name"]', { state: 'visible' });
+
+        // 要素のテキスト内容が空でなくなるまで待機
+        let text = '';
+        let attempts = 0;
+        const maxAttempts = 10;
+
+        while (text.trim() === '' && attempts < maxAttempts) {
+            text = await this.page.locator('[id="plan-name"]').textContent() || '';
+            if (text.trim() === '') {
+                // 短い間隔で再試行
+                await this.page.waitForTimeout(200);
+                attempts++;
+            }
+        }
+
+        return text;
     }
 
     async getGuestNameText() {
-        return await this.page.locator('[id="username"]').textContent();
+        await this.page.waitForSelector('[id="username"]', { state: 'visible' });
+
+        let text = '';
+        let attempts = 0;
+        const maxAttempts = 10;
+
+        while (text.trim() === '' && attempts < maxAttempts) {
+            text = await this.page.locator('[id="username"]').textContent() || '';
+            if (text.trim() === '') {
+                await this.page.waitForTimeout(200);
+                attempts++;
+            }
+        }
+
+        return text;
     }
 
     async getContactText() {
-        return await this.page.locator('[id="contact"]').textContent();
+        await this.page.waitForSelector('[id="contact"]', { state: 'visible' });
+
+        let text = '';
+        let attempts = 0;
+        const maxAttempts = 10;
+
+        while (text.trim() === '' && attempts < maxAttempts) {
+            text = await this.page.locator('[id="contact"]').textContent() || '';
+            if (text.trim() === '') {
+                await this.page.waitForTimeout(200);
+                attempts++;
+            }
+        }
+
+        return text;
     }
 
     async getModalText() {
+        await this.page.waitForSelector('.modal-body', { state: 'visible' });
         return await this.page.locator('.modal-body').textContent();
     }
 }

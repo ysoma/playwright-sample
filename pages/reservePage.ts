@@ -77,6 +77,29 @@ export class ReservePage extends BasePage {
     }
 
     /**
+    * 宿泊日フィールドをクリア
+    */
+    async clearDate() {
+        await this.dateInput.click();
+        await this.dateInput.fill('');
+        await this.page.keyboard.press('Escape'); // 日付ピッカーを閉じる
+    }
+
+    /**
+     * 宿泊数フィールドをクリア
+     */
+    async clearStayDays() {
+        await this.stayDaysInput.fill('');
+    }
+
+    /**
+     * 宿泊人数フィールドをクリア
+     */
+    async clearGuests() {
+        await this.guestsInput.fill('');
+    }
+
+    /**
      * 宿泊者名を入力
      * @param name 宿泊者名
      */

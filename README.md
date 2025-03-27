@@ -6,6 +6,8 @@
 このプロジェクトは [Hotel Planisphere](https://hotel.testplanisphere.dev/) を対象とした自動E2Eテストのデモンストレーションです。
 Playwright + TypeScript + Allure Report を使用し、効率的かつ堅牢なテスト設計・構成を実装しています。
 
+**📊 最新のテスト結果は [https://ysoma.github.io/playwright-sample/](https://ysoma.github.io/playwright-sample/) で確認できます**
+
 ![Playwright](https://img.shields.io/badge/Playwright-v1.51.1-45ba4b.svg?logo=playwright)
 ![TypeScript](https://img.shields.io/badge/TypeScript-v5.3.3-3178C6.svg?logo=typescript)
 ![Allure](https://img.shields.io/badge/Allure_Report-v2.33.0-orange.svg?logo=qameta)
@@ -22,7 +24,7 @@ Playwright + TypeScript + Allure Report を使用し、効率的かつ堅牢な�
 ## 🔗 リンク
 
 - [テスト対象サイト](https://hotel.testplanisphere.dev/)
-- [テスト結果レポート](https://ysoma.github.io/playwright-sample/)
+- [テスト結果レポート](https://ysoma.github.io/playwright-sample/) - GitHub Actionsで自動生成されたAllureレポート
 - [CI/CDパイプライン](https://github.com/ysoma/playwright-sample/actions)
 
 ## 🛠️ 技術スタック
@@ -89,6 +91,13 @@ npm run allure:generate
 npm run allure:open
 ```
 
+### 自動生成されたレポートの確認
+
+GitHub Actionsで実行されたテスト結果は、以下のURLで確認できます：
+**[https://ysoma.github.io/playwright-sample/](https://ysoma.github.io/playwright-sample/)**
+
+このレポートは、mainブランチへのコミット時に自動的に更新されます。
+
 ### レポートのクリーンアップ
 
 ```bash
@@ -130,7 +139,7 @@ npx playwright test tests/visual.spec.ts --update-snapshots
 
 3. **レポート公開**
    - GitHub Pagesへの自動デプロイ
-   - 最新のテスト結果へのアクセス提供
+   - 最新のテスト結果が [https://ysoma.github.io/playwright-sample/](https://ysoma.github.io/playwright-sample/) で常に確認可能
 
 ## 📁 プロジェクト構成
 

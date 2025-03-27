@@ -125,6 +125,33 @@ UIが意図的に変更された場合、期待画像を更新します：
 npx playwright test tests/visual.spec.ts --update-snapshots
 ```
 
+## 📊 ビジュアルリグレッション検証例
+
+このプロジェクトでは、Playwrightのスクリーンショット比較機能を使用して、UIの視覚的な変更を自動的に検出します。
+
+### 宿泊予約フォーム - ビジュアル比較
+
+<table>
+  <tr>
+    <th>基準画像（期待値）</th>
+    <th>テスト画像（実際）</th>
+    <th>差分検出</th>
+  </tr>
+  <tr>
+    <td><img src="docs/images/visual-regression/reserve-expected.png" width="250" alt="基準となる画像"/></td>
+    <td><img src="docs/images/visual-regression/reserve-actual.png" width="250" alt="テスト実行時の画像"/></td>
+    <td><img src="docs/images/visual-regression/reserve-diff.png" width="250" alt="差分を表示した画像"/></td>
+  </tr>
+</table>
+
+ビジュアルリグレッションテストでは、上記のように画面の視覚的な変更を自動検出します。わずかなUIの変更でもピクセルレベルで比較し、意図しない変更が発生した場合にテストが失敗します。これにより、デザインの一貫性を保ち、予期せぬUI変更を防止します。
+
+このテストは `tests/visual.spec.ts` で実装されており、宿泊予約フローの各ステップでスクリーンショットを取得・比較します。期待画像を更新したい場合は以下のコマンドを使用します：
+
+```bash
+npx playwright test tests/visual.spec.ts --update-snapshots
+```
+
 ## 🔄 継続的インテグレーション
 
 このプロジェクトはGitHub Actionsと統合されており、以下の自動化が実現されています：

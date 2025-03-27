@@ -1,0 +1,33 @@
+name: Generate Visual Baseline
+
+on:
+  workflow_dispatch:  # 手動で実行できるようにします
+
+jobs:
+  generate-baseline:
+    name: Generate Visual Baseline Screenshots
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+        
+      - name: Update visual test screenshots
+        run: npx playwright test tests/visual.spec.ts --update-snapshots
+        
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-snapshots
+          path: tests/visual.spec.ts-snapshots/
+          retention-days: 5

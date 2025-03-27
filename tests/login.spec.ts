@@ -1,51 +1,128 @@
+/**
+ * ログイン機能E2Eテスト
+ * 
+ * このテストでは、以下を検証します：
+ * 1. 正しい認証情報でログインが成功すること
+ * 2. 誤った認証情報でログインが失敗し、適切なエラーメッセージが表示されること
+ * 3. 未認証状態でのページアクセス制御が機能すること
+ * 4. ログアウト機能が正しく動作すること
+ */
+
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../pages/loginPage';
 import { allure } from 'allure-playwright';
 
-test('正しい資格情報でログインできる', async ({ page }) => {
+// ----------------------------------------------------------------------------
+// テスト用認証データ
+// ----------------------------------------------------------------------------
+const loginCredentials = {
+    validUser: {
+        email: 'ichiro@example.com',
+        password: 'password'
+    },
+    invalidUser: {
+        email: 'ichiro@example.com',
+        password: 'wrongpassword'
+    }
+};
+
+// ----------------------------------------------------------------------------
+// テストケース
+// ----------------------------------------------------------------------------
+
+test('正しい認証情報でログインできる', async ({ page }) => {
+    // テストのメタデータを設定
+    allure.label('feature', 'ログイン');
+    allure.description('登録済みユーザーが正しいメールアドレスとパスワードでログインできる');
+    allure.severity('critical');
+
+    // GIVEN: ログインページにアクセスする
     const loginPage = new LoginPage(page);
     await loginPage.goto();
 
-    allure.label('feature', 'ログイン');
-    allure.description('登録済みユーザーが正しいメールアドレスとパスワードでログインできる');
+    // WHEN: 正しいメールアドレスとパスワードを入力してログインする
+    await loginPage.loginAs(
+        loginCredentials.validUser.email,
+        loginCredentials.validUser.password
+    );
 
-    await loginPage.loginAs('ichiro@example.com', 'password');
+    // THEN: マイページに遷移する
+    await expect(page).toHaveURL(/mypage/);
 
-    await expect(page).toHaveURL(/mypage/); // ログイン後のマイページへ遷移する
+    // AND: マイページのヘッダーが表示される
     await expect(page.getByRole('heading', { name: /マイページ/ })).toBeVisible();
 });
 
 test('間違ったパスワードでログインできない', async ({ page }) => {
+    // テストのメタデータを設定
+    allure.label('feature', 'ログイン');
+    allure.description('誤ったパスワードではログインできず、エラーメッセージが表示される');
+    allure.severity('critical');
+
+    // GIVEN: ログインページにアクセスする
     const loginPage = new LoginPage(page);
     await loginPage.goto();
 
-    allure.label('feature', 'ログイン');
-    allure.description('誤ったパスワードではログインできず、エラーメッセージが表示される');
+    // WHEN: 正しいメールアドレスと誤ったパスワードを入力してログインする
+    await loginPage.loginAs(
+        loginCredentials.invalidUser.email,
+        loginCredentials.invalidUser.password
+    );
 
-    await loginPage.loginAs('ichiro@example.com', 'wrongpassword');
-
+    // THEN: ログインページに留まる
     await expect(page).toHaveURL(/\/login/);
+
+    // AND: 適切なエラーメッセージが表示される
     await expect(page.locator('#email-message')).toContainText('メールアドレスまたはパスワードが違います');
     await expect(page.locator('#password-message')).toContainText('メールアドレスまたはパスワードが違います');
 });
 
 test('未ログイン状態でマイページにアクセスするとリダイレクトされる', async ({ page }) => {
+    // テストのメタデータを設定
     allure.label('feature', 'ログイン制御');
     allure.description('認証されていない状態で /mypage にアクセスすると /index にリダイレクトされる');
+    allure.severity('high');
 
+    // GIVEN: 未ログイン状態
+
+    // WHEN: マイページに直接アクセスする
     await page.goto('/ja/mypage');
+
+    // THEN: トップページにリダイレクトされる
     await expect(page).toHaveURL(/\/index/);
 });
 
 test('ログイン後にログアウトするとトップページに戻る', async ({ page }) => {
+    // テストのメタデータを設定
+    allure.label('feature', 'ログアウト');
+    allure.description('ログアウト機能が正しく動作し、トップページにリダイレクトされる');
+    allure.severity('high');
+
+    // GIVEN: ログインページにアクセスする
     const loginPage = new LoginPage(page);
     await loginPage.goto();
 
-    await loginPage.loginAs('ichiro@example.com', 'password');    // ログイン
-    await expect(page).toHaveURL(/mypage/);   // マイページに遷移
-    await loginPage.logout();    // ログアウト
+    // WHEN: ログインする
+    await loginPage.loginAs(
+        loginCredentials.validUser.email,
+        loginCredentials.validUser.password
+    );
 
+    // THEN: マイページに遷移する
+    await expect(page).toHaveURL(/mypage/);
+
+    // WHEN: ログアウトする
+    await loginPage.logout();
+
+    // THEN: トップページにリダイレクトされる
     await expect(page).toHaveURL(/\/index/);
+
+    // AND: ログインボタンが表示される（ログアウト状態の確認）
     await expect(page.getByRole('button', { name: 'ログイン' })).toBeVisible();
 });
 
+// 将来的に追加すべきテストケース：
+// - 存在しないユーザーでのログイン試行
+// - パスワードリセット機能のテスト
+// - 認証状態の永続化（リロード後も維持）の検証
+// - セッションタイムアウトの検証

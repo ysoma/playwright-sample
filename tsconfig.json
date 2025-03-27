@@ -1,14 +1,42 @@
 {
     "compilerOptions": {
-        "target": "ESNext",
-        "module": "CommonJS",
-        "strict": true,
-        "esModuleInterop": true,
-        "outDir": "dist",
-        "moduleResolution": "node",
-        "skipLibCheck": true
+        /* 基本オプション */
+        "target": "ESNext", /* ECMAScriptのターゲットバージョン */
+        "module": "CommonJS", /* モジュールコード生成の指定 */
+        "lib": [
+            "ESNext",
+            "DOM"
+        ], /* コンパイルに含めるライブラリの指定 */
+        "outDir": "dist", /* 出力ディレクトリの指定 */
+        /* 厳格な型チェック */
+        "strict": true, /* すべての厳格な型チェックオプションを有効化 */
+        "noImplicitAny": true, /* 暗黙的なanyを許可しない */
+        "strictNullChecks": true, /* null/undefinedの厳格な型チェック */
+        "strictFunctionTypes": true, /* 関数の厳格な型チェック */
+        "strictBindCallApply": true, /* bind, call, applyの厳格な型チェック */
+        /* モジュール解決オプション */
+        "esModuleInterop": true, /* CommonJSモジュールとのより良い互換性 */
+        "moduleResolution": "node", /* モジュール解決方法の指定 */
+        "resolveJsonModule": true, /* JSONモジュールのインポートを許可 */
+        /* 詳細オプション */
+        "skipLibCheck": true, /* 宣言ファイルの型チェックをスキップ */
+        "forceConsistentCasingInFileNames": true, /* ファイル名の大文字小文字の一貫性を強制 */
+        "useUnknownInCatchVariables": true, /* catch節の変数にunknown型を使用 */
+        "exactOptionalPropertyTypes": true, /* オプショナルプロパティの厳密な型チェック */
+        /* ソースマップ */
+        "sourceMap": true, /* ソースマップファイルを生成 */
+        /* 実験的オプション */
+        "experimentalDecorators": true, /* 実験的なデコレータを有効化 */
+        "emitDecoratorMetadata": true /* デコレータのメタデータを出力 */
     },
     "include": [
-        "tests"
+        "tests/**/*.ts",
+        "pages/**/*.ts",
+        "helpers/**/*.ts",
+        "*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
     ]
 }

@@ -1,47 +1,100 @@
 /**
- * @name plansPage.ts
- * @description Plans page object
+ * @name PlansPage
+ * @description プラン一覧ページのページオブジェクト
+ * 宿泊プランの一覧表示と選択操作を提供します。
  */
 
 import { BasePage } from './basePage';
 import { Locator, Page } from '@playwright/test';
 
 export class PlansPage extends BasePage {
-    async goto() {
-        await this.page.goto('/ja/plans');
+    /**
+     * PlansPage コンストラクタ
+     * @param page Playwrightのページオブジェクト
+     */
+    constructor(page: Page) {
+        super(page);
     }
 
-    async selectPlanByName(planName: string): Promise<Page> {
+    /**
+     * プラン一覧ページにアクセス
+     */
+    async goto() {
+        await this.page.goto('/ja/plans');
+        await this.waitForPageLoad();
+    }
 
+    /**
+     * プラン名からカードロケーターを取得
+     * @param planName プラン名
+     * @returns プランカードのロケーター
+     */
+    private getPlanCard(planName: string): Locator {
+        return this.page.locator(`.card-body:has(h5.card-title:text-is("${planName}"))`);
+    }
+
+    /**
+     * 指定された名前のプランを選択
+     * @param planName 選択するプラン名
+     * @returns 新しいページ（ポップアップ）
+     */
+    async selectPlanByName(planName: string): Promise<Page> {
         try {
-            // まずプランが存在するか確認
+            // プランカードを特定
             const cardSelector = `.card-body:has(h5.card-title:text-is("${planName}"))`;
             await this.page.waitForSelector(cardSelector, { timeout: 5000 });
-
-            // カードを取得
             const card = this.page.locator(cardSelector);
 
-            // リンクボタンを取得（方法5で成功したアプローチを使用）
+            // 予約ボタンを特定
             const reserveButton = card.locator('a.btn, a[role="button"]');
-
-            // ボタンが見つかるまで待機
             await reserveButton.waitFor({ state: 'visible', timeout: 5000 });
 
             // ポップアップを待機してボタンをクリック
             const popupPromise = this.page.waitForEvent('popup');
             await reserveButton.click();
 
-            // ポップアップが表示されるのを待機
-            const popup = await popupPromise;
+            // ポップアップページを取得
+            const reservationPage = await popupPromise;
+            await reservationPage.waitForLoadState('networkidle');
 
-            return popup;
+            return reservationPage;
         } catch (error) {
             console.error(`プラン「${planName}」の選択中にエラーが発生しました: ${error instanceof Error ? error.message : '未知のエラー'}`);
-            throw error;
+
+            // エラーの詳細情報を出力
+            await this.debugPlanSelection(planName);
+
+            // スクリーンショットを撮影してデバッグ情報として保存
+            await this.takeScreenshot('error-plan-selection.png');
+
+            throw new Error(`プラン「${planName}」の選択に失敗しました: ${error instanceof Error ? error.message : '未知のエラー'}`);
         }
     }
 
-    // デバッグ用のメソッド - 問題が発生したときのみ使用
+    /**
+     * 利用可能なすべてのプラン名を取得
+     * @returns 利用可能なプラン名の配列
+     */
+    async getAvailablePlans(): Promise<string[]> {
+        await this.waitForPageLoad();
+        return this.page.locator('h5.card-title').allTextContents();
+    }
+
+    /**
+     * 特定のプランの料金を取得
+     * @param planName プラン名
+     * @returns プランの料金文字列
+     */
+    async getPlanPrice(planName: string): Promise<string> {
+        const card = this.getPlanCard(planName);
+        const priceElement = card.locator('.card-text:has-text("お値段")');
+        return await this.getLocatorTextWithRetry(priceElement);
+    }
+
+    /**
+     * プラン選択のデバッグ情報を出力
+     * @param planName デバッグ対象のプラン名
+     */
     async debugPlanSelection(planName: string) {
         console.log('デバッグモードを開始します...');
 
@@ -66,5 +119,50 @@ export class PlansPage extends BasePage {
         }
 
         console.log('デバッグ情報の収集を完了しました');
+    }
+
+    /**
+     * 特定の条件でプランをフィルタリング
+     * @param keyword 検索キーワード
+     * @returns フィルタリングされたプラン名の配列
+     */
+    async searchPlans(keyword: string): Promise<string[]> {
+        const allPlans = await this.getAvailablePlans();
+        return allPlans.filter(plan => plan.includes(keyword));
+    }
+
+    /**
+     * プランの詳細情報を取得
+     * @param planName プラン名
+     * @returns プランの詳細情報オブジェクト
+     */
+    async getPlanDetails(planName: string): Promise<{ title: string, price: string, description: string }> {
+        const card = this.getPlanCard(planName);
+
+        const title = await this.getLocatorTextWithRetry(card.locator('h5.card-title'));
+        const price = await this.getLocatorTextWithRetry(card.locator('.card-text:has-text("お値段")'));
+        const description = await this.getLocatorTextWithRetry(card.locator('.card-text').first());
+
+        return {
+            title,
+            price,
+            description
+        };
+    }
+
+    /**
+     * すべてのプランの概要情報を一括取得
+     * @returns すべてのプランの概要情報配列
+     */
+    async getAllPlansSummary(): Promise<{ name: string, price: string }[]> {
+        const planNames = await this.getAvailablePlans();
+        const result = [];
+
+        for (const name of planNames) {
+            const price = await this.getPlanPrice(name);
+            result.push({ name, price });
+        }
+
+        return result;
     }
 }

@@ -12,60 +12,29 @@ import { BasePage } from '../pages/basePage';
 import { LoginPage } from '../pages/loginPage';
 import { PlansPage } from '../pages/plansPage';
 import { allure } from 'allure-playwright';
+import { 
+    PerformanceMetrics, 
+    PERFORMANCE_THRESHOLDS, 
+    MAIN_PAGES,
+    NavigationAction
+} from '../helpers/performanceHelpers';
+import { loginCredentials, reservationData } from '../helpers/testData';
 
 // パフォーマンス測定を行うための拡張テスト関数
 const test = baseTest.extend<{
-    metrics: {
-        measurePageLoad: (url: string, description: string) => Promise<number>;
-        measureNavigation: (action: () => Promise<void>, description: string) => Promise<number>;
-    };
+    metrics: PerformanceMetrics;
 }>({
     // メトリクス用のユーティリティメソッド
     metrics: async ({ page }, use) => {
-        const metrics = {
-            // ページ読み込み時間を測定する関数
-            async measurePageLoad(url: string, description: string): Promise<number> {
-                const startTime = Date.now();
-                await page.goto(url);
-                await page.waitForLoadState('networkidle');
-                const loadTime = Date.now() - startTime;
-
-                // Allureレポートにパフォーマンスメトリクスを記録
-                allure.parameter(`${description} 読み込み時間`, `${loadTime}ms`);
-
-                return loadTime;
-            },
-
-            // ナビゲーション時間を測定
-            async measureNavigation(action: () => Promise<void>, description: string): Promise<number> {
-                const startTime = Date.now();
-                await action();
-                await page.waitForLoadState('networkidle');
-                const navTime = Date.now() - startTime;
-
-                // Allureレポートにナビゲーション時間を記録
-                allure.parameter(`${description} 遷移時間`, `${navTime}ms`);
-
-                return navTime;
-            }
-        };
-
-        await use(metrics);
+        await use(new PerformanceMetrics(page));
     }
 });
-
-// パフォーマンス閾値
-const PERFORMANCE_THRESHOLDS = {
-    PAGE_LOAD: 3000,        // ページ読み込み時間閾値（ミリ秒）
-    NAVIGATION: 2000,       // ページ遷移時間閾値（ミリ秒）
-    FORM_SUBMIT: 2500       // フォーム送信時間閾値（ミリ秒）
-};
 
 // ----------------------------------------------------------------------------
 // テストケース
 // ----------------------------------------------------------------------------
 
-test('主要ページの読み込み速度を検証する @performance', async ({ page, metrics }) => {
+test('主要ページの読み込み速度を検証する @performance', async ({ metrics }) => {
     // Allureレポート用メタデータの設定
     allure.epic('パフォーマンス');
     allure.feature('ページ読み込み速度');
@@ -74,23 +43,7 @@ test('主要ページの読み込み速度を検証する @performance', async (
     allure.tag('performance');
 
     // 主要ページの読み込み時間を測定
-    const pages = [
-        { url: '/ja/index', name: 'トップページ' },
-        { url: '/ja/plans', name: 'プラン一覧ページ' },
-        { url: '/ja/login', name: 'ログインページ' }
-    ];
-
-    // 各ページの読み込み時間を測定
-    for (const pageInfo of pages) {
-        await allure.step(`${pageInfo.name}の読み込み時間を測定`, async () => {
-            const loadTime = await metrics.measurePageLoad(pageInfo.url, pageInfo.name);
-
-            // パフォーマンス基準を満たしているか検証
-            expect(loadTime,
-                `${pageInfo.name}の読み込み時間が${PERFORMANCE_THRESHOLDS.PAGE_LOAD}ms以内であること`)
-                .toBeLessThan(PERFORMANCE_THRESHOLDS.PAGE_LOAD);
-        });
-    }
+    await metrics.measureMultiplePageLoads(MAIN_PAGES, PERFORMANCE_THRESHOLDS.PAGE_LOAD);
 });
 
 test('ナビゲーション遷移の応答時間を検証する @performance', async ({ page, metrics }) => {
@@ -107,7 +60,7 @@ test('ナビゲーション遷移の応答時間を検証する @performance', a
     await page.waitForLoadState('networkidle');
 
     // 各ナビゲーションアクションの応答時間を測定
-    const navActions = [
+    const navActions: NavigationAction[] = [
         {
             action: async () => await basePage.navigateToPlans(),
             description: '宿泊プランページへの遷移'
@@ -122,16 +75,7 @@ test('ナビゲーション遷移の応答時間を検証する @performance', a
         }
     ];
 
-    for (const navAction of navActions) {
-        await allure.step(`${navAction.description}の応答時間を測定`, async () => {
-            const navTime = await metrics.measureNavigation(navAction.action, navAction.description);
-
-            // パフォーマンス基準を満たしているか検証
-            expect(navTime,
-                `${navAction.description}が${PERFORMANCE_THRESHOLDS.NAVIGATION}ms以内であること`)
-                .toBeLessThan(PERFORMANCE_THRESHOLDS.NAVIGATION);
-        });
-    }
+    await metrics.measureMultipleNavigations(navActions, PERFORMANCE_THRESHOLDS.NAVIGATION);
 });
 
 test('ログイン処理の応答時間を検証する @performance', async ({ page, metrics }) => {
@@ -147,8 +91,8 @@ test('ログイン処理の応答時間を検証する @performance', async ({ p
     await loginPage.goto();
 
     // ログイン情報を入力
-    await loginPage.fillEmail('ichiro@example.com');
-    await loginPage.fillPassword('password');
+    await loginPage.fillEmail(loginCredentials.validUser.email);
+    await loginPage.fillPassword(loginCredentials.validUser.password);
 
     // ログイン送信の応答時間を測定
     await allure.step('ログイン処理の応答時間を測定', async () => {
@@ -181,7 +125,7 @@ test('プラン予約モーダルの表示速度を検証する @performance', a
     await allure.step('プラン詳細表示の応答時間を測定', async () => {
         // プラン詳細を開く時間を計測
         const modalAction = async () => {
-            await plansPage.selectPlanByName('お得な特典付きプラン');
+            await plansPage.selectPlanByName(reservationData.planName);
         };
         const displayTime = await metrics.measureNavigation(modalAction, 'プラン詳細表示');
 

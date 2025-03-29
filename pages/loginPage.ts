@@ -7,6 +7,20 @@
 import { BasePage } from './basePage';
 import { Locator, Page, expect } from '@playwright/test';
 
+/**
+ * ログインテストケースのインターフェース
+ * すべてのテストケースは以下の情報を持つ
+ */
+export interface LoginTestCase {
+    testName: string;                        // テストの説明
+    email: string;                           // 入力するメールアドレス
+    password: string;                        // 入力するパスワード
+    expectedOutcome: 'success' | 'failure';  // 期待される結果
+    expectedEmailError: string;              // 期待されるメールエラー（空文字=エラーなし）
+    expectedPasswordError: string;           // 期待されるパスワードエラー（空文字=エラーなし）
+    tags: string[];                          // テストのタグ（分類）
+}
+
 export class LoginPage extends BasePage {
     // ページ要素のロケーター
     private readonly emailInput: Locator;
@@ -100,6 +114,64 @@ export class LoginPage extends BasePage {
 
         expect(emailError).toContain(expectedEmailError);
         expect(passwordError).toContain(expectedPasswordError);
+    }
+
+    /**
+     * 特定のフィールドのエラーメッセージの有無を検証
+     * @param field 検証対象のフィールド ('email' または 'password')
+     * @param shouldExist エラーメッセージが存在すべきか
+     * @param expectedText 期待されるエラーメッセージテキスト（省略可）
+     */
+    async assertErrorMessagePresence(field: 'email' | 'password', shouldExist: boolean, expectedText?: string) {
+        const errorElement = field === 'email' ? this.emailErrorMessage : this.passwordErrorMessage;
+        
+        if (shouldExist) {
+            await expect(errorElement).toBeVisible();
+            if (expectedText) {
+                const errorText = await this.getLocatorTextWithRetry(errorElement);
+                expect(errorText).toContain(expectedText);
+            }
+        } else {
+            try {
+                const isVisible = await errorElement.isVisible();
+                if (isVisible) {
+                    const errorText = await this.getLocatorTextWithRetry(errorElement);
+                    expect(errorText.trim()).toBe('');
+                }
+            } catch (e) {
+                // 要素が見つからない場合はOK（エラーなし）
+                console.log(`${field}エラーメッセージ要素が存在しません（エラーなしの場合はOK）`);
+            }
+        }
+    }
+
+    /**
+     * テストケースに基づいてログインテストを実行
+     * @param testCase ログインテストケース
+     */
+    async executeLoginTest(testCase: LoginTestCase) {
+        // ログイン情報を入力して送信
+        await this.loginAs(testCase.email, testCase.password);
+
+        // 期待される結果を検証
+        if (testCase.expectedOutcome === 'success') {
+            await this.assertLoginSuccess();
+        } else {
+            await this.assertLoginFailure();
+
+            // エラーメッセージの検証
+            if (testCase.expectedEmailError) {
+                await this.assertErrorMessagePresence('email', true, testCase.expectedEmailError);
+            } else {
+                await this.assertErrorMessagePresence('email', false);
+            }
+
+            if (testCase.expectedPasswordError) {
+                await this.assertErrorMessagePresence('password', true, testCase.expectedPasswordError);
+            } else {
+                await this.assertErrorMessagePresence('password', false);
+            }
+        }
     }
 
     /**

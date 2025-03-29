@@ -11,20 +11,7 @@
 import { test, expect } from './hooks';
 import { LoginPage } from '../pages/loginPage';
 import { allure } from 'allure-playwright';
-
-// ----------------------------------------------------------------------------
-// テスト用認証データ
-// ----------------------------------------------------------------------------
-const loginCredentials = {
-    validUser: {
-        email: 'ichiro@example.com',
-        password: 'password'
-    },
-    invalidUser: {
-        email: 'ichiro@example.com',
-        password: 'wrongpassword'
-    }
-};
+import { loginCredentials } from '../helpers/testData';
 
 // ----------------------------------------------------------------------------
 // テストケース
@@ -82,21 +69,17 @@ test('間違ったパスワードでログインできない', async ({ page }) 
         await loginPage.goto();
     });
 
-    // WHEN: 正しいメールアドレスと誤ったパスワードを入力してログインする
-    await allure.step('無効なパスワードでログイン試行', async () => {
-        await loginPage.loginAs(
-            loginCredentials.invalidUser.email,
-            loginCredentials.invalidUser.password
-        );
-    });
-
-    // THEN: ログインに失敗し、適切なエラーメッセージが表示される
-    await allure.step('ログイン失敗とエラーメッセージの検証', async () => {
-        await loginPage.assertLoginFailure();
-        await loginPage.assertErrorMessages(
-            'メールアドレスまたはパスワードが違います',
-            'メールアドレスまたはパスワードが違います'
-        );
+    // WHEN & THEN: 誤った認証情報でログインし、結果を検証
+    await allure.step('無効なパスワードでログイン試行と結果検証', async () => {
+        await loginPage.executeLoginTest({
+            testName: '間違ったパスワードでログイン',
+            email: loginCredentials.invalidUser.email,
+            password: loginCredentials.invalidUser.password,
+            expectedOutcome: 'failure' as const,
+            expectedEmailError: 'メールアドレスまたはパスワードが違います',
+            expectedPasswordError: 'メールアドレスまたはパスワードが違います',
+            tags: ['negative', 'security', 'authentication']
+        });
     });
 });
 

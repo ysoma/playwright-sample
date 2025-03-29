@@ -17,6 +17,9 @@ Playwright + TypeScript + Allure Report を使用し、効率的かつ堅牢な�
 - **Page Object Model (POM)設計** - 保守性と再利用性の高いテストコード
 - **ビジュアルリグレッションテスト** - UIの変更を自動検出
 - **クロスブラウザテスト** - Chrome, Firefox, Safari対応
+- **境界値テスト** - 入力フィールドの境界値と異常系テスト
+- **フォームバリデーションテスト** - 入力検証の網羅的テスト
+- **パフォーマンステスト** - ページ読み込みと操作の応答時間測定
 - **CI/CD統合** - GitHub Actionsによる自動テスト実行
 - **Allureレポート** - 詳細なテスト結果を視覚的に表示
 - **GitHub Pages連携** - テスト結果レポートの自動公開
@@ -110,8 +113,11 @@ npm run allure:clean
 |--------------|------|------|
 | `index.spec.ts` | トップページとナビゲーション | 基本機能とUIテスト |
 | `login.spec.ts` | ログイン機能 | 認証フロー、バリデーション、セキュリティ |
+| `login-boundary.spec.ts` | ログイン境界値テスト | 様々な入力パターンでのバリデーション検証 |
 | `reservation.spec.ts` | 宿泊予約フロー | E2Eフロー検証（予約〜確定） |
+| `reservation-validation.spec.ts` | 予約フォームバリデーション | フォーム入力検証の網羅的テスト |
 | `visual.spec.ts` | ビジュアルリグレッション | UI一貫性の検証 |
+| `performance.spec.ts` | パフォーマンス計測 | ページ読み込み・操作の応答時間測定 |
 
 ## 📸 ビジュアルテスト
 
@@ -152,6 +158,40 @@ npx playwright test tests/visual.spec.ts --update-snapshots
 npx playwright test tests/visual.spec.ts --update-snapshots
 ```
 
+## 🔬 境界値テストとバリデーションテスト
+
+このプロジェクトでは、入力フィールドの境界値テストとフォームバリデーションテストを実装しています。
+
+### 境界値テスト
+
+`login-boundary.spec.ts` では、ログインフォームに対して以下のようなテストを実施しています：
+
+- 様々な長さや特殊文字を含むパスワード
+- 異なる形式のメールアドレス
+- 空入力や極端に長い入力などの境界値
+- セキュリティ関連の入力パターン（XSSなど）
+
+### バリデーションテスト
+
+`reservation-validation.spec.ts` では、宿泊予約フォームのバリデーションを検証しています：
+
+- 必須フィールドの空入力チェック
+- 数値フィールドの最小値検証
+- メールアドレス形式の検証
+- 複数フィールドの同時エラー表示
+
+これらのテストにより、ユーザー入力の検証が正しく機能していることを確認し、データの整合性とセキュリティを担保しています。
+
+## ⏱️ パフォーマンステスト
+
+`performance.spec.ts` では、アプリケーションのパフォーマンスを測定しています：
+
+- 主要ページの読み込み速度
+- ナビゲーション遷移の応答時間
+- フォーム送信とモーダル表示の応答性
+
+各操作に対して時間閾値を設定し、パフォーマンスが基準を満たしているかを自動的に検証します。これにより、アプリケーションの応答性を継続的にモニタリングし、パフォーマンス低下を早期に検出できます。
+
 ## 🔄 継続的インテグレーション
 
 このプロジェクトはGitHub Actionsと統合されており、以下の自動化が実現されています：
@@ -172,22 +212,32 @@ npx playwright test tests/visual.spec.ts --update-snapshots
 
 ```
 .
-├── pages/              # ページオブジェクト
-│   ├── basePage.ts     # 基本ページクラス（共通機能）
-│   ├── indexPage.ts    # トップページ
-│   ├── loginPage.ts    # ログインページ
-│   └── ...             # その他ページオブジェクト
-├── tests/              # テストケース
-│   ├── index.spec.ts   # トップページテスト
-│   ├── login.spec.ts   # ログインテスト
-│   └── ...             # その他テスト
-├── helpers/            # ヘルパー関数
-├── .github/workflows/  # GitHub Actions設定
-├── allure-results/     # テスト結果（生成される）
-├── allure-report/      # HTMLレポート（生成される）
-├── playwright.config.ts # Playwright設定
-├── package.json        # プロジェクト設定
-└── README.md           # プロジェクト説明
+├── pages/                 # ページオブジェクト
+│   ├── basePage.ts        # 基本ページクラス（共通機能）
+│   ├── indexPage.ts       # トップページ
+│   ├── loginPage.ts       # ログインページ
+│   ├── plansPage.ts       # プラン一覧ページ
+│   ├── reservePage.ts     # 予約ページ
+│   └── confirmPage.ts     # 予約確認ページ
+├── tests/                 # テストケース
+│   ├── hooks.ts           # テスト共通フック
+│   ├── index.spec.ts      # トップページテスト
+│   ├── login.spec.ts      # ログインテスト
+│   ├── login-boundary.spec.ts # ログイン境界値テスト
+│   ├── reservation.spec.ts # 予約フローテスト
+│   ├── reservation-validation.spec.ts # 予約バリデーションテスト
+│   ├── visual.spec.ts     # ビジュアルリグレッションテスト
+│   └── performance.spec.ts # パフォーマンステスト
+├── helpers/               # ヘルパー関数
+│   ├── testHelpers.ts     # テスト用ユーティリティ
+│   └── visualHelpers.ts   # ビジュアルテスト用ヘルパー
+├── .github/workflows/     # GitHub Actions設定
+├── allure-results/        # テスト結果（生成される）
+├── allure-report/         # HTMLレポート（生成される）
+├── docs/                  # ドキュメントとサンプル画像
+├── playwright.config.ts   # Playwright設定
+├── package.json           # プロジェクト設定
+└── README.md              # プロジェクト説明
 ```
 
 ## 📝 テスト設計
@@ -196,8 +246,9 @@ npx playwright test tests/visual.spec.ts --update-snapshots
 
 1. **ページオブジェクトモデル (POM)** - ページごとの操作をカプセル化
 2. **テストデータの分離** - テストとデータを分離し保守性向上
-3. **Allureアノテーション** - テストメタデータの付与でレポート強化
-4. **エラーハンドリング** - 安定したテスト実行のための対策実装
+3. **データ駆動テスト** - 同じテストロジックで複数のデータセットを検証
+4. **Allureアノテーション** - テストメタデータの付与でレポート強化
+5. **エラーハンドリング** - 安定したテスト実行のための対策実装
 
 ## 🤝 コントリビューション
 

@@ -27,7 +27,7 @@ export const loginCredentials = {
  */
 export const reservationData = {
     planName: 'お得な特典付きプラン',
-    checkInDate: '2025/04/01',
+    checkInDate: '2025/07/01',
     stayDays: '2',
     guests: '2',
     additionalPlans: ['朝食バイキング', 'お得な観光プラン'],
